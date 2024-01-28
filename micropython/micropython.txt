@@ -1,0 +1,45 @@
+import machine
+import time
+
+# Define pin numbers for relays and analog input
+relay1_pin = 4  # Replace with the actual pin number for relay 1
+relay2_pin = 5  # Replace with the actual pin number for relay 2
+relay3_pin = 6  # Replace with the actual pin number for relay 3
+ignition_pin = 0  # Replace with the actual analog pin number for ignition detection
+
+# Set up relay pins as outputs
+relay1 = machine.Pin(relay1_pin, machine.Pin.OUT)
+relay2 = machine.Pin(relay2_pin, machine.Pin.OUT)
+relay3 = machine.Pin(relay3_pin, machine.Pin.OUT)
+
+def control_relays():
+    # Read analog value from ignition pin
+    ignition_status = machine.ADC(ignition_pin).read()
+
+    if ignition_status > 900:  # Adjust the threshold based on your sensor's characteristics
+        # Ignition detected
+        relay1.on()  # Turn on relay 1
+        time.sleep(1)  # Wait for a second
+
+        relay2.on()  # Turn on relay 2
+        time.sleep(5)  # Keep relay 2 on for 5 seconds
+        relay2.off()  # Turn off relay 2
+
+
+    else:
+        # No ignition detected
+        relay3.on()  # Turn on relay 3
+        time.sleep(2)  # Keep relay 3 on for 2 seconds
+
+        relay2.on()  # Turn on relay 2
+        time.sleep(5)  # Keep relay 2 on for 5 seconds
+        relay2.off()  # Turn off relay 2
+
+        time.sleep(60)  # Wait for a minute
+
+        # Turn off relay 1
+        relay1.off()
+
+# Main loop
+while True:
+    control_relays()
