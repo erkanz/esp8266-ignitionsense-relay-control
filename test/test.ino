@@ -1,65 +1,59 @@
-// Define the analog pin for ignition detection
-const int ignitionPin = A0;
+#define RELAY1 14  // Define the pins for the relays
+#define RELAY2 12
+#define RELAY3 13
+#define IGNITION_SENSOR A0  // Define the analog input pin for the ignition sensor
+#define IGNITION_THRESHOLD 900  // Adjust this value based on your voltage divider configuration
+#define WAIT_TIME 30000  // 1 minute in milliseconds
 
-// Define the relay control pins
-const int relay1Pin = 14;
-const int relay2Pin = 12;
-const int relay3Pin = 13;
-
-int ignitionThreshold = 900;  // Adjust this threshold based on your car's ignition voltage
+bool relay2Activated = false;  // Flag to control Relay 2 activation
+bool relay3Activated = false;  // Flag to control Relay 3 activation
 
 void setup() {
-  // Initialize Serial for debugging purposes
-  Serial.begin(115200);
+  pinMode(RELAY1, OUTPUT);  // Set relay pins as output
+  pinMode(RELAY2, OUTPUT);
+  pinMode(RELAY3, OUTPUT);
 
-  // Set relay control pins as OUTPUT
-  pinMode(ignitionPin, INPUT);
-  pinMode(relay1Pin, OUTPUT);
-  pinMode(relay2Pin, OUTPUT);
-  pinMode(relay3Pin, OUTPUT);
+  digitalWrite(RELAY1, HIGH);
+  digitalWrite(RELAY2, HIGH);
+  digitalWrite(RELAY3, LOW);
+
+
   
-  // Initial state of relays (can be HIGH or LOW depending on your relay module)
-  digitalWrite(relay1Pin, HIGH);
-  digitalWrite(relay2Pin, HIGH);
-  digitalWrite(relay3Pin, HIGH);
+  Serial.begin(9600);  // Start serial communication
 }
 
 void loop() {
-  // Read the ignition status
-  int ignitionValue = analogRead(ignitionPin);
+  
+  int ignitionValue = analogRead(IGNITION_SENSOR);
 
-  // Check if ignition is detected
-  if (ignitionValue > ignitionThreshold) {
-    // Ignition detected
-    Serial.println("Ignition detected!");
+  if (ignitionValue > IGNITION_THRESHOLD) {
+    // Car ignition is ON
+    digitalWrite(RELAY1, LOW);
 
-    // Turn on relay 1
-    digitalWrite(relay1Pin, LOW);
-    delay(1000);
+    if (!relay2Activated) {
+      digitalWrite(RELAY2, LOW);
+      delay(5000);  // Relay 2 is on for 5 seconds
+      digitalWrite(RELAY2, HIGH);
+      relay2Activated = true;
+    }
 
-    // Turn on relay 2 for 5 seconds
-    digitalWrite(relay2Pin, LOW);
-    delay(5000);
-    digitalWrite(relay2Pin, HIGH);
-
+    Serial.println("Ignition ON - Relay 1 and Relay 2 ON");
   } else {
-    // No ignition detected
-    Serial.println("No ignition detected!");
+    // Car ignition is OFF
+    digitalWrite(RELAY3, HIGH);
 
-    // Turn on relay 3 for 2 seconds
-    digitalWrite(relay3Pin, LOW);
-    delay(2000);
-    digitalWrite(relay3Pin, HIGH);
+    delay(2000);  // Relay 3 is on for 2 seconds
+    digitalWrite(RELAY3, LOW);
 
-    // Turn on relay 2 for 5 seconds
-    digitalWrite(relay2Pin, LOW);
-    delay(5000);
-    digitalWrite(relay2Pin, HIGH);
+    Serial.println("Ignition OFF - Relay 3 ON");
 
-    // Wait for a minute
-    delay(60000);
+    delay(WAIT_TIME);
 
-    // Turn off relay 1
-    digitalWrite(relay1Pin, HIGH);
+    if (digitalRead(RELAY1) == LOW) {
+      digitalWrite(RELAY1, HIGH);
+      relay2Activated = false;
+      Serial.println("Relay 1 still ON after waiting - Relay 1 OFF");
+    }
   }
+  delay(1000);
 }
