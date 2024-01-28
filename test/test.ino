@@ -12,7 +12,7 @@ void setup() {
   pinMode(RELAY1, OUTPUT);  // Set relay pins as output
   pinMode(RELAY2, OUTPUT);
   pinMode(RELAY3, OUTPUT);
-
+ // set Initial status of relays
   digitalWrite(RELAY1, HIGH);
   digitalWrite(RELAY2, HIGH);
   digitalWrite(RELAY3, LOW);
